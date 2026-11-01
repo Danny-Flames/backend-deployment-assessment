@@ -1,0 +1,52 @@
+# Keep the build context small and free of anything that should never be
+# baked into an image. Everything listed here is excluded before the Docker
+# daemon receives the context.
+
+# --- Version control ---
+.git
+.gitignore
+.gitmodules
+**/.git
+
+# --- This repository's own infrastructure and docs ---
+# None of it is needed to compile the Go binary.
+terraform/
+evidence/
+README.md
+docker-compose.yml
+Dockerfile
+.dockerignore
+
+# --- Secrets and local environment files ---
+# Real credentials must never enter an image layer.
+.env
+*.env
+!**/.env.example
+*.pem
+*.key
+mongodb.key
+mongo-keyfile
+terraform.tfvars
+*.tfstate
+*.tfstate.*
+
+# --- Application files not needed for the build ---
+much-to-do/Server/MuchToDo/docker-compose.yaml
+much-to-do/Server/MuchToDo/Makefile
+much-to-do/Server/README.md
+much-to-do/.gitignore
+
+# Tests are run in CI, not during the image build.
+**/*_test.go
+**/*_test.go.cp
+
+# --- Build artefacts and editor noise ---
+bin/
+*.exe
+*.test
+*.out
+coverage.*
+.vscode/
+.idea/
+.DS_Store
+*.swp

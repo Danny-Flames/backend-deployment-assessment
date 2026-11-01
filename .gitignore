@@ -1,0 +1,47 @@
+# --- Secrets and local configuration ----------------------------------------
+# Real variable values. Only terraform.tfvars.example is committed.
+terraform.tfvars
+*.auto.tfvars
+
+# Local application environment. Only .env.example is committed.
+.env
+!.env.example
+
+# SSH keys and MongoDB keyfiles must never be committed.
+*.pem
+*.key
+mongodb.key
+mongo-keyfile
+
+# --- Terraform ---------------------------------------------------------------
+# .terraform/ holds downloaded providers and is machine-specific.
+# .terraform.lock.hcl is deliberately NOT ignored: committing it pins exact
+# provider versions so every run resolves identically.
+.terraform/
+crash.log
+crash.*.log
+*.tfplan
+
+# NOTE: terraform.tfstate is normally gitignored, because it can contain
+# sensitive values and should live in a remote backend such as S3 with
+# DynamoDB locking. This assessment explicitly requires the state file to be
+# submitted, so it is committed here deliberately and is NOT ignored.
+# Backup copies are still excluded.
+*.tfstate.backup
+
+# --- Go ----------------------------------------------------------------------
+bin/
+*.exe
+*.test
+*.out
+coverage.*
+
+# --- Editors and OS ----------------------------------------------------------
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+
+# README.md
+README.md

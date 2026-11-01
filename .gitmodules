@@ -1,0 +1,4 @@
+[submodule "much-to-do"]
+	path = much-to-do
+	url = https://github.com/Innocent9712/much-to-do.git
+	branch = feature/backend-only
