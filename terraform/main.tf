@@ -408,6 +408,17 @@ resource "aws_instance" "backend" {
   # instance behind. Replaces the instance on apply.
   user_data_replace_on_change = true
 
+  # The instance has no public IP, so its only path to the internet is the NAT
+  # Gateway. cloud-init runs user_data within about a minute of boot, and the
+  # script's first action is `yum update`. Without this dependency Terraform is
+  # free to create the instance alongside the NAT Gateway and the private route
+  # table association, and the bootstrap then fails with
+  # "Connection timeout" before any package is installed.
+  depends_on = [
+    aws_nat_gateway.main,
+    aws_route_table_association.private,
+  ]
+
   tags = {
     Name = "${local.name_prefix}-backend"
     Role = "backend"
@@ -426,6 +437,14 @@ resource "aws_instance" "mongodb" {
 
   user_data                   = file("${path.module}/user_data/mongodb_setup.sh")
   user_data_replace_on_change = true
+
+  # Same reason as the backend instance: the MongoDB bootstrap adds a yum
+  # repository and installs packages, so it needs the NAT route in place
+  # before cloud-init runs.
+  depends_on = [
+    aws_nat_gateway.main,
+    aws_route_table_association.private,
+  ]
 
   tags = {
     Name = "${local.name_prefix}-mongodb"

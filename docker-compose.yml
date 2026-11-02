@@ -1,9 +1,5 @@
 # MuchToDo backend + MongoDB
 #
-# Used both locally (developer laptop) and on the backend EC2 instance.
-# Values come from a `.env` file sitting next to this file; copy .env.example
-# to .env and fill it in before running. Compose reads that file automatically.
-#
 #   docker compose up -d --build
 #   docker compose ps
 #   curl http://localhost:8080/health
@@ -14,25 +10,23 @@ services:
   # -------------------------------------------------------------------------
   # Runs as a SINGLE-NODE REPLICA SET, not a standalone server.
   #
-  # Why: internal/handlers/user.go uses StartSession() + WithTransaction() for
-  # the delete-user flow. MongoDB only permits multi-document transactions on a
-  # replica set or a sharded cluster. Against a standalone mongod the API starts
-  # cleanly and /health returns 200 - the failure only appears later, as
-  # "Transaction numbers are only allowed on a replica set member or mongos".
-  #
-  # The replica set is initiated by the healthcheck below on first run, so no
-  # manual `rs.initiate()` step is needed.
   mongodb:
     image: mongo:8.0
     container_name: muchtodo-mongodb
     restart: unless-stopped
-    command: ["--replSet", "rs0", "--bind_ip_all"]
-    # NOTE: port 27017 is deliberately NOT published to the host.
-    # MongoDB is reachable only from other services on the `appnet` network.
-    # On EC2 this is reinforced by the MongoDB security group, which only
-    # accepts 27017 from the backend security group.
+
+    command:
+      [
+        "--replSet",
+        "rs0",
+        "--bind_ip_all",
+        "--wiredTigerCacheSizeGB",
+        "0.25",
+      ]
+
     volumes:
       - mongo_data:/data/db
+
     healthcheck:
       # Initiates the replica set the first time it runs, then simply reports
       # status on every subsequent check.
@@ -44,10 +38,13 @@ services:
             rs.initiate({_id: 'rs0', members: [{_id: 0, host: 'mongodb:27017'}]}).ok
           }
         "
-      interval: 10s
-      timeout: 10s
+      interval: 60s
+      timeout: 15s
       retries: 10
-      start_period: 30s
+      # Gives mongod time to start and the replica set to elect a primary
+      # before the first check counts against the retry budget.
+      start_period: 90s
+
     networks:
       - appnet
 
