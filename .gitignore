@@ -15,8 +15,6 @@ mongo-keyfile
 
 # --- Terraform ---------------------------------------------------------------
 # .terraform/ holds downloaded providers and is machine-specific.
-# .terraform.lock.hcl is deliberately NOT ignored: committing it pins exact
-# provider versions so every run resolves identically.
 .terraform/
 crash.log
 crash.*.log
@@ -36,12 +34,19 @@ bin/
 *.out
 coverage.*
 
+# --- Transferred container images ---------------------------------------------
+# `docker save` output used to ship the built image to the EC2 instance. Tens of
+# megabytes, and rebuildable from source - never commit it.
+*.tar
+*.tar.gz
+
 # --- Editors and OS ----------------------------------------------------------
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
 *.swp
+
 
 # README.md
 README.md
